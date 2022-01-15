@@ -11,7 +11,27 @@
         integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 
     <title>To Do List</title>
+    <style>
+        .container {
+            height: 100vh;
 
+        }
+
+        .list-enter-active,
+        .list-leave-active {
+            transition: all 0.3s;
+        }
+
+        .list-enter,
+        .list-leave-to {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+
+        .list-move {
+            transition: transform 0.3s;
+        }
+    </style>
 
 </head>
 
@@ -21,9 +41,8 @@
         <div class="container p-5">
 
 
-            <div class="row justify-content-center">
+            <div class="row justify-content-center mt-5">
                 <div class="col-lg-5 col-md-8 col-sm-10 col-12">
-
 
                     <input-component v-on:add-list="createList" v-on:add-list-new="createListNew"></input-component>
 
@@ -94,28 +113,33 @@
             template: `
             <div class="row mt-3">
                 <div class="col">
-                    <template v-if="data.length>0">
-                        <div v-for="(d,i) in data" class="d-flex justify-content-between" :key="d.do+i+'input'+generateString()">
+                    
+                    <transition-group name="list" tag="div">
+                    <template v-if="data.length>0">      
+                        <div v-for="(d,i) in data" class="d-flex justify-content-between" :key="d.id">
+                               
                             <div class="form-check">      
+                                
+                                <input class="form-check-input" type="checkbox" v-bind:value="d.do" v-bind:id="'id'+d.id"  v-bind:checked="d.complete"  v-on:change="$emit('do-checked',{data:d,index:i})">
 
-                                <input class="form-check-input" type="checkbox" v-bind:value="d.do" v-bind:id="d.do+i"  v-bind:checked="d.complete"  v-on:change="$emit('do-checked',{data:d,index:i})" >
-
-                                <label class="form-check-label" v-bind:for="d.do+i" v-bind:class="{'text-decoration-line-through':d.complete,'text-danger':d.complete}" >
+                                <label class="form-check-label" v-bind:for="'id'+d.id" v-bind:class="{'text-decoration-line-through':d.complete,'text-danger':d.complete}">
                                     {{ d.do }}
                                 </label>
 
                             </div>
-                            
+                        
                             <div class="p-1">
-                                <a class="btn btn-primary btn-sm py-0" href="#" v-on:click.prevent="$emit('delete-list',i)" >X</a>
+                                <a class="btn btn-primary btn-sm py-0" href="#" v-on:click.prevent="$emit('delete-list',i)">X</a>
                             </div>
+                            
                         </div>
                     </template>
                     <template v-else>
-                        <div>
+                        <div key="nothing">
                             <small>Nothing to do</small>
                         </div>
                     </template>
+                    </transition-group>
                 </div>
             </div>
             `
@@ -160,6 +184,9 @@
                 }
             },
             methods: {
+                generateId() {
+                    return btoa(Math.random().toString()).substr(10, 5)
+                },
                 alertComplete() {
                     Swal.fire({
                         position: 'center',
@@ -173,7 +200,7 @@
                 alertToast(kegiatan) {
                     const Toast = Swal.mixin({
                         toast: true,
-                        position: 'bottom-center',
+                        position: 'top',
                         showConfirmButton: false,
                         timer: 2000,
                         timerProgressBar: true,
@@ -193,6 +220,7 @@
                 },
                 createListNew(kegiatan) {
                     const data = {
+                        id: this.generateId(),
                         do: kegiatan,
                         complete: false
                     }
@@ -203,6 +231,7 @@
                 },
                 createList(event) {
                     const data = {
+                        id: this.generateId(),
                         do: event.target.value,
                         complete: false
                     }
@@ -226,9 +255,9 @@
 
                     }
                     obj.data.complete ? this.alertToast(obj.data.do) : '';
-                    this.progress==100 ? this.alertComplete():'';
+                    this.progress == 100 ? this.alertComplete() : '';
                     this.saveToLocalStorage();
-                    
+
                 },
                 clear() {
                     this.listData = []
