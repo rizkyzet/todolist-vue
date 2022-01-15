@@ -73,7 +73,7 @@
             template: `
             <div class="row">
                 <div class="col">
-                    <input type="text" class="form-control" v-model="kegiatan" placeholder="Tambah kegiatan..." v-on:keyup.enter="$emit('add-list',$event)">
+                    <input type="text" class="form-control" v-model="kegiatan" placeholder="Mau ngapain hari ini..." v-on:keyup.enter="$emit('add-list',$event)">
                 </div>
                 <div class="col-auto">
                     <button class="btn btn-primary" v-on:click="addKegiatan">Add</button>
@@ -160,6 +160,16 @@
                 }
             },
             methods: {
+                alertComplete() {
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: 'Selamat',
+                        text: "Semua pekerjaan telah selesai, kamu produktif hari ini !!!",
+                        showConfirmButton: false,
+                        timer: 3000
+                    })
+                },
                 alertToast(kegiatan) {
                     const Toast = Swal.mixin({
                         toast: true,
@@ -216,7 +226,9 @@
 
                     }
                     obj.data.complete ? this.alertToast(obj.data.do) : '';
+                    this.progress==100 ? this.alertComplete():'';
                     this.saveToLocalStorage();
+                    
                 },
                 clear() {
                     this.listData = []
