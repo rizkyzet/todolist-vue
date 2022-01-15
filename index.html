@@ -11,6 +11,8 @@
         integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 
     <title>To Do List</title>
+
+
 </head>
 
 <body>
@@ -18,18 +20,21 @@
     <div id="app">
         <div class="container p-5">
 
-            
+
             <div class="row justify-content-center">
-                <div class="col-4">
-                    <h3>Todo List</h3>
-                    <input-component v-bind:input='inputValue' v-on:add-list="createList"></input-component>
+                <div class="col-lg-5 col-md-8 col-sm-10 col-12">
+
+
+                    <input-component v-on:add-list="createList" v-on:add-list-new="createListNew"></input-component>
+
                     <progress-component v-bind:percent='progress'></progress-component>
+
                     <list-component v-bind:data='ordered' v-on:delete-list='deleteList' v-on:do-checked='doChecked'>
                     </list-component>
 
                     <div class="row mt-3">
                         <div class="col d-flex justify-content-end">
-                            <a href="#" v-on:click="clear">Clear</a>
+                            <a href="#" v-on:click="clear">Clear All</a>
                         </div>
                     </div>
                 </div>
@@ -44,16 +49,34 @@
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
     </script>
 
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+
+
 
     <script>
         // Input Componenet
         Vue.component('input-component', {
             props: ['input'],
+            data() {
+                return {
+                    kegiatan: '',
+                }
+            },
+            methods: {
+                addKegiatan() {
+                    this.$emit('add-list-new', this.kegiatan)
+                    this.kegiatan = ''
+                }
+            },
             template: `
             <div class="row">
                 <div class="col">
-                    <input type="text" class="form-control" placeholder="tambah kegiatan..." v-on:keyup.enter="$emit('add-list',$event)">
+                    <input type="text" class="form-control" v-model="kegiatan" placeholder="Tambah kegiatan..." v-on:keyup.enter="$emit('add-list',$event)">
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary" v-on:click="addKegiatan">Add</button>
                 </div>
             </div>
             `
@@ -83,8 +106,8 @@
 
                             </div>
                             
-                            <div>
-                                <a href="#" v-on:click.prevent="$emit('delete-list',i)" >Hapus</a>
+                            <div class="p-1">
+                                <a class="btn btn-primary btn-sm py-0" href="#" v-on:click.prevent="$emit('delete-list',i)" >X</a>
                             </div>
                         </div>
                     </template>
@@ -126,10 +149,48 @@
         const vm = new Vue({
             el: '#app',
             data: {
-                inputValue: '',
                 listData: [],
             },
+            mounted() {
+                const storage = localStorage.getItem('todo')
+                if (storage) {
+                    this.listData = JSON.parse(storage);
+                } else {
+                    this.listData = [];
+                }
+            },
             methods: {
+                alertToast(kegiatan) {
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'bottom-center',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer)
+                            toast.addEventListener('mouseleave', Swal.resumeTimer)
+                        }
+                    })
+
+                    Toast.fire({
+                        icon: 'success',
+                        title: `${kegiatan} selesai dikerjakan`
+                    })
+                },
+                saveToLocalStorage() {
+                    localStorage.setItem('todo', JSON.stringify(this.listData))
+                },
+                createListNew(kegiatan) {
+                    const data = {
+                        do: kegiatan,
+                        complete: false
+                    }
+
+                    this.listData.unshift(data)
+                    this.saveToLocalStorage();
+
+                },
                 createList(event) {
                     const data = {
                         do: event.target.value,
@@ -138,32 +199,39 @@
 
                     this.listData.unshift(data)
                     event.target.value = ''
+                    this.saveToLocalStorage();
                 },
                 deleteList(index) {
                     this.listData.splice(index, 1)
+                    this.saveToLocalStorage();
                 },
                 doChecked(obj) {
 
                     obj.data.complete = !obj.data.complete
 
+                    // jika di chek hasil akhirnya false maka dia akan ke urutan paling atas
                     if (obj.data.complete == false) {
                         this.listData.splice(obj.index, 1);
                         this.listData.unshift(obj.data)
 
                     }
+                    obj.data.complete ? this.alertToast(obj.data.do) : '';
+                    this.saveToLocalStorage();
                 },
                 clear() {
                     this.listData = []
+                    this.saveToLocalStorage();
                 }
             },
             computed: {
-                filteredList() {
-                    const newArray = this.listData.slice(0)
-                    return newArray.sort((a, b) => {
-                        return a.complete === b.complete ? 0 : a.complete ? 1 : -1
-                    })
-                },
+                // filteredList() {
+                //     const newArray = this.listData.slice(0)
+                //     return newArray.sort((a, b) => {
+                //         return a.complete === b.complete ? 0 : a.complete ? 1 : -1
+                //     })
+                // },
                 ordered() {
+                    // mengurutkan kegiatan yang sudah dikerjakan dan yang belum dikerjakan 
                     return this.listData.sort((a, b) => {
                         return a.complete === b.complete ? 0 : a.complete ? 1 : -1
                     })
