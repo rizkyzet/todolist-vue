@@ -17,6 +17,7 @@
 
         }
 
+
         .list-enter-active,
         .list-leave-active {
             transition: all 0.3s;
@@ -35,9 +36,9 @@
 
 </head>
 
-<body >
+<body>
 
-    <div id="app" >
+    <div id="app">
         <div class="container p-5 my-5">
 
 
@@ -116,7 +117,7 @@
                     
                     <transition-group name="list" tag="div">
                     <template v-if="data.length>0">      
-                        <div v-for="(d,i) in data" class="d-flex justify-content-between border-bottom mb-2" :key="d.id">
+                        <div v-for="(d,i) in data" class="d-flex justify-content-between border-bottom mb-2 overflow-auto" :key="d.id">
                                
                             <div class="form-check">      
                                 
@@ -135,8 +136,8 @@
                         </div>
                     </template>
                     <template v-else>
-                        <div key="nothing">
-                            <small>Nothing to do</small>
+                        <div key="nothing" class="text-center">
+                            <small >Nothing to do</small>
                         </div>
                     </template>
                     </transition-group>
